@@ -1,12 +1,20 @@
 
 import os
 import asyncio
-import aiohttp
 from lumaai import AsyncLumaAI
 
 LUMA_API_KEY = os.getenv("LUMA_API_KEY")
 
-async def generate_video(prompt: str) -> bytes:
+async def generate_video(prompt: str) -> str:
+    """
+    Generate a video using Luma AI and return the download URL.
+    
+    Args:
+        prompt: Text description of the video to generate
+        
+    Returns:
+        str: URL to download the generated video (valid for 24 hours from Luma)
+    """
     if not LUMA_API_KEY:
         raise RuntimeError("Missing LUMA_API_KEY")
 
@@ -28,9 +36,5 @@ async def generate_video(prompt: str) -> bytes:
     if generation.state == "failed":
         raise RuntimeError(f"Generation failed: {generation.failure_reason}")
 
-    # Download the video
-    video_url = generation.assets.video
-    async with aiohttp.ClientSession() as session:
-        async with session.get(video_url) as response:
-            response.raise_for_status()
-            return await response.read()
+    # Return the video URL (valid for 24 hours)
+    return generation.assets.video

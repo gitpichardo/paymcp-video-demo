@@ -7,8 +7,5 @@ paymcp>=0.4.3
 # Video Generation
 lumaai>=1.18.0
 
-# HTTP Client
-aiohttp>=3.13.0
-
 # Environment Variables
 python-dotenv>=1.0.0

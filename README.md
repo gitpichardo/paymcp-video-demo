@@ -1,26 +1,48 @@
 # PayMCP Video Generation Demo
 
-A demonstration of PayMCP integration with Luma AI for paid video generation through Claude Desktop.
+A demonstration of PayMCP integration with Luma AI for paid video generation, compatible with Claude Desktop and other MCP clients.
 
 ## Features
 
 - 💰 **Payment integration** using PayMCP with Walleot
 - 🎥 **AI video generation** using Luma AI Dream Machine
 - 🔄 **TWO_STEP payment mode** - payment before execution
-- 📁 **Auto-save** videos to Downloads folder
-- 🤖 **MCP integration** for Claude Desktop
+- 🔗 **URL-based delivery** - returns video download links
+- 🌐 **HTTP-based MCP server** - secure hosted deployment
+- 🔌 **Local STDIO proxy** - Claude Desktop compatible
+
+## Architecture
+
+This demo uses a **proxy pattern** to maintain security while supporting Claude Desktop:
+
+```
+Claude Desktop (STDIO)
+    ↓
+Local Proxy (proxy.ts) - No API keys
+    ↓ HTTP
+Hosted PayMCP Server (server.py) - Has API keys
+    ↓
+Payment & Video Generation
+```
+
+**Why this architecture?**
+- 🔒 API keys stay on the hosted server (secure)
+- 🖥️ Claude Desktop runs local proxy in STDIO mode (compatible)
+- 🌐 Proxy forwards requests to hosted server (flexible)
 
 ## Prerequisites
 
-- Python 3.10 or higher
-- Claude Desktop
+- **Python 3.10+** (for PayMCP server)
+- **Node.js 18+** (for local proxy)
 - API Keys:
   - [Walleot API Key](https://walleot.com/developers)
   - [Luma AI API Key](https://lumalabs.ai/dream-machine/api/keys)
 
 ## Installation
 
-### 1. Clone and Setup
+### Part 1: Setup PayMCP Server (Hosted)
+
+#### 1. Install Python Dependencies
 
 ```bash
 cd paymcp-video-demo
@@ -29,9 +51,9 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment Variables
+#### 2. Configure Environment Variables
 
-Create a `.env` file (or set environment variables):
+Create a `.env` file:
 
 ```bash
 # Video Provider
@@ -46,9 +68,35 @@ PAYMCP_MODE=TWO_STEP
 PRICE_USD=0.60
 ```
 
-### 3. Configure Claude Desktop
+#### 3. Start the Server
 
-Edit your Claude Desktop configuration file:
+```bash
+python server.py
+```
+
+The server will start on `http://localhost:8000`.
+
+**For production:** Deploy to a cloud platform (Railway, Fly.io, AWS, etc.) and note your server URL.
+
+### Part 2: Setup Local Proxy (for Claude Desktop)
+
+#### 1. Install Node.js Dependencies
+
+```bash
+npm install
+```
+
+#### 2. Build the Proxy
+
+```bash
+npm run build
+```
+
+This compiles `proxy.ts` to `proxy.js`.
+
+#### 3. Configure Claude Desktop
+
+Edit your Claude Desktop configuration:
 
 **Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 
@@ -60,27 +108,36 @@ Add this configuration:
 {
   "mcpServers": {
     "paymcp-video-demo": {
-      "command": "/absolute/path/to/venv/bin/python",
-      "args": [
-        "/absolute/path/to/server.py"
-      ],
+      "command": "node",
+      "args": ["/absolute/path/to/paymcp-video-demo/proxy.js"],
       "env": {
-        "VIDEO_PROVIDER": "luma",
-        "PRICE_USD": "0.60",
-        "PAYMCP_MODE": "TWO_STEP",
-        "WALLEOT_API_KEY": "your_walleot_api_key_here",
-        "LUMA_API_KEY": "your_luma_api_key_here"
+        "PAYMCP_SERVER_URL": "http://localhost:8000"
       }
     }
   }
 }
 ```
 
-**Important:** Replace `/absolute/path/to/` with your actual paths!
+**For production:** Change `PAYMCP_SERVER_URL` to your deployed server URL.
 
-### 4. Restart Claude Desktop
+#### 4. Restart Claude Desktop
 
-Completely quit and restart Claude Desktop for it to pick up the new MCP server.
+Completely quit and restart Claude Desktop.
+
+## 🔒 Security Notice
+
+**⚠️ API keys must NEVER be exposed to end users**
+
+This demo uses a **proxy architecture** to maintain security:
+
+- ✅ **Server** (`server.py`) - Hosted, contains API keys
+- ✅ **Proxy** (`proxy.ts`) - Local, NO API keys, just forwards requests
+- ❌ **Never run server in STDIO mode** with API keys in config
+
+**Deployment models:**
+- **Development:** Server on `localhost`, proxy connects locally
+- **Production:** Server on cloud (Railway, Fly.io, AWS), proxy connects remotely
+- **Team use:** Shared hosted server, each user runs their own proxy
 
 ## Usage
 
@@ -92,22 +149,29 @@ Simply ask Claude to generate a video:
 "Generate a video of a sunset over the ocean"
 ```
 
+The proxy will forward your request to the hosted PayMCP server.
+
 ### Payment Workflow (TWO_STEP Mode)
 
-1. **Request video generation** - Claude calls the `generate` tool
+1. **Request video generation** - Client calls the `generate` tool
 2. **Receive payment link** - You'll get a Walleot payment URL ($0.60)
 3. **Complete payment** - Click the link and pay
-4. **Confirm payment** - Tell Claude "I paid" or "Payment completed"
+4. **Confirm payment** - Use the `confirm_generate_payment` tool with the payment_id
 5. **Video generation** - Luma AI generates your video (~1-3 minutes)
-6. **Download** - Video is automatically saved to your Downloads folder
+6. **Receive URL** - Get a download link for your generated video (valid 24 hours)
 
 ### Example Response
 
+```json
+{
+  "message": "Video generated successfully!",
+  "video_url": "https://storage.lumalabs.ai/dream_machine/...",
+  "prompt": "a sunset over the ocean",
+  "instructions": "Click the video_url to download or view your generated video"
+}
 ```
-Video generated successfully!
-File path: /Users/you/Downloads/video_a1b2c3d4.mp4
-File size: 5.23 MB
-```
+
+The video URL is valid for 24 hours and can be downloaded directly.
 
 ## PayMCP Modes
 
@@ -121,36 +185,46 @@ This demo uses `TWO_STEP` mode by default. You can change modes by setting `PAYM
 
 See [PayMCP documentation](https://github.com/PayMCP/paymcp) for more details.
 
-## Architecture
-
-```
-Claude Desktop
-    ↓
-MCP Server (server.py)
-    ↓
-PayMCP (payment handling)
-    ↓
-Walleot (payment processing)
-    ↓
-Luma AI (video generation)
-    ↓
-Downloads folder (saved video)
-```
-
 ## Files
 
-- `server.py` - Main MCP server with PayMCP integration
-- `providers/luma_client.py` - Luma AI video generation client
+**Server (Python):**
+- `server.py` - PayMCP server with payment and video generation
+- `providers/luma_client.py` - Luma AI integration
 - `requirements.txt` - Python dependencies
-- `.gitignore` - Excludes sensitive files
+
+**Proxy (Node.js/TypeScript):**
+- `proxy.ts` - Local STDIO proxy for Claude Desktop
+- `package.json` - Node.js dependencies
+- `tsconfig.json` - TypeScript configuration
+
+**Configuration:**
+- `.env` - Server environment variables (not committed)
+- `.gitignore` - Excludes sensitive and generated files
 
 ## Troubleshooting
 
-### "Could not connect to MCP server"
+### "Could not connect to MCP server" (Claude Desktop)
 
-- Check that all paths in `claude_desktop_config.json` are absolute
-- Verify Python virtual environment path is correct
-- Check Claude Desktop logs: `~/Library/Logs/Claude/mcp.log`
+**Check the proxy:**
+1. Ensure `proxy.js` exists (run `npm run build`)
+2. Check absolute path in Claude Desktop config is correct
+3. Verify `PAYMCP_SERVER_URL` environment variable is set
+
+**Check the server:**
+1. Ensure the server is running: `python server.py`
+2. Verify server is accessible at configured URL
+3. Check server logs for errors
+
+**Test the flow:**
+```bash
+# Terminal 1: Start server
+python server.py
+
+# Terminal 2: Test server directly
+curl http://localhost:8000/
+
+# Terminal 3: Restart Claude Desktop
+```
 
 ### "Permission denied" errors
 
@@ -167,7 +241,7 @@ Downloads folder (saved video)
 
 - Video generation typically takes 1-3 minutes
 - Check Luma AI dashboard for generation status
-- Claude Desktop may timeout after 5 minutes
+- Some MCP clients may have request timeouts - check client settings
 
 ## Dependencies
 
@@ -175,24 +249,21 @@ Downloads folder (saved video)
 fastmcp>=2.13.0      # MCP server framework
 paymcp>=0.4.3        # Payment integration
 lumaai>=1.18.0       # Luma AI SDK
-aiohttp              # HTTP client
 python-dotenv        # Environment variables
 ```
 
 ## Development
 
-### Running in HTTP mode (for testing)
+### Running the server
 
 ```bash
 python server.py
 # Server runs on http://localhost:8000
 ```
 
-### Running in STDIO mode (for Claude Desktop)
+### Testing the API
 
-```bash
-echo '{"jsonrpc":"2.0","method":"initialize",...}' | python server.py
-```
+You can test the MCP server using any HTTP client or MCP-compatible application that supports the HTTP transport.
 
 ## Contributing
 

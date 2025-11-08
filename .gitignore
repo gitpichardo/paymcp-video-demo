@@ -31,6 +31,12 @@ ENV/
 env/
 .venv
 
+# Node.js (for proxy)
+node_modules/
+*.js
+*.js.map
+package-lock.json
+
 # IDE
 .vscode/
 .idea/

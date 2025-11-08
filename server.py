@@ -37,34 +37,19 @@ PayMCP(
 @mcp.tool()
 @price(PRICE_USD, "USD")
 async def generate(prompt: str, ctx: Context):
-    """Generates a short video and returns an MP4 file."""
-    import tempfile
-    import uuid
-    from pathlib import Path
-    
-    # Generate the video
-    data = await generate_video(prompt)
-    
-    # Save to a file in Downloads folder
-    downloads_dir = Path.home() / "Downloads"
-    filename = f"video_{uuid.uuid4().hex[:8]}.mp4"
-    filepath = downloads_dir / filename
-    
-    filepath.write_bytes(data)
+    """Generates a short video and returns a download URL."""
+    # Generate the video and get the URL from Luma
+    video_url = await generate_video(prompt)
     
     return {
-        "message": f"Video generated successfully!",
-        "file_path": str(filepath),
-        "file_size_mb": round(len(data) / (1024 * 1024), 2),
-        "location": f"Saved to: {filepath}"
+        "message": "Video generated successfully!",
+        "video_url": video_url,
+        "prompt": prompt,
+        "instructions": "Click the video_url to download or view your generated video"
     }
 
 if __name__ == "__main__":
-    # Use stdio for Claude Desktop, streamable-http for other clients
-    import sys
-    if sys.stdin.isatty():
-        # Running interactively, use HTTP
-        mcp.run(transport="streamable-http")
-    else:
-        # Running from Claude Desktop or similar, use stdio
-        mcp.run()
+    # Always run in HTTP mode (streamable-http transport)
+    # The proxy will connect to this server and forward requests to Claude Desktop
+    # This keeps API keys secure on the server
+    mcp.run(transport="streamable-http")

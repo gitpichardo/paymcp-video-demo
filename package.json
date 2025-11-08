@@ -1,0 +1,19 @@
+{
+  "name": "paymcp-video-demo-proxy",
+  "version": "1.0.0",
+  "description": "Local STDIO proxy for PayMCP video generation server",
+  "type": "module",
+  "main": "proxy.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node proxy.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
+
