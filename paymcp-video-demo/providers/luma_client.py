@@ -1,39 +1,36 @@
 
-import os, aiohttp, asyncio
+import os
+import asyncio
+import aiohttp
+from lumaai import AsyncLumaAI
 
 LUMA_API_KEY = os.getenv("LUMA_API_KEY")
-BASE = "https://api.lumalabs.ai/dream-machine/v1"
 
 async def generate_video(prompt: str) -> bytes:
     if not LUMA_API_KEY:
         raise RuntimeError("Missing LUMA_API_KEY")
 
-    headers = {
-        "Authorization": f"Bearer {LUMA_API_KEY}",
-        "Content-Type": "application/json"
-    }
+    # Initialize Luma client
+    client = AsyncLumaAI(auth_token=LUMA_API_KEY)
 
+    # Create generation
+    generation = await client.generations.create(
+        prompt=prompt,
+        model="ray-2"
+    )
+
+    # Poll for completion
+    while generation.state not in ("completed", "failed"):
+        await asyncio.sleep(3)
+        generation = await client.generations.get(id=generation.id)
+        print(f"Generation state: {generation.state}", file=__import__('sys').stderr)
+
+    if generation.state == "failed":
+        raise RuntimeError(f"Generation failed: {generation.failure_reason}")
+
+    # Download the video
+    video_url = generation.assets.video
     async with aiohttp.ClientSession() as session:
-        # Submit job
-        async with session.post(f"{BASE}/videos", json={"prompt": prompt}, headers=headers) as r:
-            r.raise_for_status()
-            job = await r.json()
-        job_id = job["id"]
-
-        # Poll status
-        status = None
-        while status not in ("completed", "failed"):
-            await asyncio.sleep(2)
-            async with session.get(f"{BASE}/videos/{job_id}", headers=headers) as r:
-                r.raise_for_status()
-                job = await r.json()
-                status = job.get("status")
-
-        if status == "failed":
-            raise RuntimeError(job.get("error", "Video generation failed"))
-
-        # Download mp4
-        video_url = job["result"]["video"]["url"]
-        async with session.get(video_url, headers=headers) as r:
-            r.raise_for_status()
-            return await r.read()
+        async with session.get(video_url) as response:
+            response.raise_for_status()
+            return await response.read()
