@@ -6,11 +6,12 @@ A demonstration of PayMCP integration with Luma AI for paid video generation, co
 
 - 💰 **Payment integration** using PayMCP with Walleot
 - 🎥 **AI video generation** using Luma AI Dream Machine
-- 🔄 **TWO_STEP payment mode** - payment before execution
+- 🔄 **RESUBMIT payment mode** - reliable payment with no state management
 - 🔗 **URL-based delivery** - returns video download links
 - 🌐 **HTTP-based MCP server** - secure hosted deployment
 - 🔌 **Multi-client support** - Works with Claude Desktop and ChatGPT
 - 🚀 **Railway deployment** - One-click deployment to production
+- 📹 **Future: Apps SDK** - Inline video player component prepared (requires MCP SDK migration)
 
 ## Architecture
 
@@ -310,6 +311,25 @@ python server.py
 
 You can test the MCP server using any HTTP client or MCP-compatible application that supports the HTTP transport.
 
+## Future Enhancements
+
+### Apps SDK - Inline Video Player
+
+The `web/` directory contains a React video player component ready for **ChatGPT Apps SDK**. To enable inline video playback:
+
+**Requirements:**
+- Migrate from `fastmcp` to official `mcp` SDK (from `modelcontextprotocol/python-sdk`)
+- Register HTML resource with `mimeType: "text/html+skybridge"`
+- Link tool to component via `_meta["openai/outputTemplate"]`
+- Return `structuredContent` for component hydration
+
+**Current Status:**
+- ✅ Component built (`web/dist/video-player.js`)
+- ✅ Works with clickable URL (current implementation)
+- ⏳ Apps SDK requires official SDK (migration in progress)
+
+See `web/` directory for the video player component source.
+
 ## Contributing
 
 This is a demonstration project for the PayMCP developer community. Feel free to:
@@ -318,6 +338,7 @@ This is a demonstration project for the PayMCP developer community. Feel free to
 - Submit pull requests
 - Share improvements
 - Create variants for other video providers
+- Help migrate to official SDK for Apps SDK support!
 
 ## Resources
 
