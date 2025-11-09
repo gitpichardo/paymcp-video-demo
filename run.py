@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """
-Railway deployment wrapper that sets HOST=0.0.0.0 before importing FastMCP.
+Railway deployment wrapper that sets uvicorn host=0.0.0.0.
 """
 import os
 import sys
 
-# Set HOST and PORT BEFORE importing anything else
-# This ensures FastMCP picks them up when it initializes
+# Set uvicorn-specific environment variables
+# UVICORN_HOST is what uvicorn actually reads
+os.environ["UVICORN_HOST"] = "0.0.0.0"
+os.environ["UVICORN_PORT"] = os.getenv("PORT", "8000")
+
+# Also set these for good measure
 os.environ["HOST"] = "0.0.0.0"
 os.environ["PORT"] = os.getenv("PORT", "8000")
 
