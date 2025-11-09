@@ -49,13 +49,8 @@ async def generate(prompt: str, ctx: Context):
     }
 
 if __name__ == "__main__":
-    import os
-    
     # Always run in HTTP mode (streamable-http transport)
     # The proxy will connect to this server and forward requests to Claude Desktop
     # This keeps API keys secure on the server
-    
-    # Get port from environment (Railway, Fly.io, etc.) or default to 8000
-    port = int(os.getenv("PORT", "8000"))
-    
-    mcp.run(transport="streamable-http", port=port)
+    # FastMCP automatically uses PORT environment variable from Railway
+    mcp.run(transport="streamable-http")
