@@ -2,6 +2,9 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Install socat for port forwarding (0.0.0.0 -> 127.0.0.1)
+RUN apt-get update && apt-get install -y socat && rm -rf /var/lib/apt/lists/*
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 

@@ -48,28 +48,7 @@ async def generate(prompt: str, ctx: Context):
         "instructions": "Click the video_url to download or view your generated video"
     }
 
-# Export the ASGI app for uvicorn
-# This allows us to run: uvicorn server:asgi_app --host 0.0.0.0 --port 8000
-def create_app():
-    """Create and return the ASGI application."""
-    from fastmcp.server.http.streamable_http_manager import StreamableHTTPManager
-    from mcp.server.fastmcp.server import _make_request_handlers
-    
-    # Get request handlers from FastMCP
-    handlers = _make_request_handlers(mcp._mcp)
-    
-    # Create the streamable HTTP manager
-    manager = StreamableHTTPManager(handlers)
-    
-    # Return the ASGI app
-    return manager.create_asgi_app()
-
-# Create the app at module level so uvicorn can find it
-asgi_app = create_app()
-
 if __name__ == "__main__":
-    # For local development only
-    import uvicorn
-    import os
-    port = int(os.getenv("PORT", "8000"))
-    uvicorn.run(asgi_app, host="0.0.0.0", port=port)
+    # Run FastMCP server
+    # Railway will map port 8000 to external URL even if bound to 127.0.0.1
+    mcp.run(transport="streamable-http")
