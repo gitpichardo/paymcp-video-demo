@@ -37,6 +37,9 @@ node_modules/
 *.js.map
 package-lock.json
 
+# BUT keep the built component
+!web/dist/*.js
+
 # IDE
 .vscode/
 .idea/

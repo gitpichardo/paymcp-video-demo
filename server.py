@@ -1,5 +1,6 @@
 
 import os
+from pathlib import Path
 from mcp.server.fastmcp import FastMCP, Context
 from fastmcp.utilities.types import File
 from paymcp import PayMCP, Mode, price
@@ -24,6 +25,30 @@ else:
 # ---- MCP server
 mcp = FastMCP("Video generator")
 
+# ---- Load video player component bundle
+WEB_DIR = Path(__file__).parent / "web"
+try:
+    COMPONENT_JS = (WEB_DIR / "dist" / "video-player.js").read_text()
+except FileNotFoundError:
+    COMPONENT_JS = "console.error('Component bundle not found');"
+
+# Register the video player UI component as an HTML resource
+@mcp.resource("ui://widget/video-player.html")
+def video_player_template() -> str:
+    """HTML template for the video player component"""
+    return {
+        "uri": "ui://widget/video-player.html",
+        "mimeType": "text/html+skybridge",
+        "text": f'''
+<div id="video-player-root"></div>
+<script type="module">{COMPONENT_JS}</script>
+        '''.strip(),
+        "_meta": {
+            "openai/widgetPrefersBorder": True,
+            "openai/widgetDescription": "Displays an embedded video player with the generated AI video"
+        }
+    }
+
 # ---- PayMCP mode selection
 _mode_env = os.getenv("PAYMCP_MODE", "TWO_STEP").upper()
 MODE = getattr(Mode, _mode_env, Mode.TWO_STEP)
@@ -34,34 +59,32 @@ PayMCP(
     mode=MODE
 )
 
-@mcp.tool()
+@mcp.tool(
+    _meta={
+        "openai/outputTemplate": "ui://widget/video-player.html",
+        "openai/toolInvocation/invoking": "Generating video...",
+        "openai/toolInvocation/invoked": "Video ready!"
+    }
+)
 @price(PRICE_USD, "USD")
 async def generate(prompt: str, ctx: Context):
-    """Generates a short video and returns a download URL with embedded preview."""
+    """Generates a short AI video and displays it with an embedded player."""
     # Generate the video and get the URL from Luma
     video_url = await generate_video(prompt)
     
-    # Return MCP-formatted content with embedded video resource
-    # ChatGPT can render this inline with video player
-    return [
-        {
-            "type": "text",
-            "text": f"✅ Video generated successfully!\n\n📹 Your video: {prompt}\n\n🎬 Watch below:"
-        },
-        {
-            "type": "resource",
-            "resource": {
-                "uri": video_url,
-                "mimeType": "video/mp4",
-                "name": f"video_{prompt[:30].replace(' ', '_')}.mp4",
-                "description": f"AI-generated video: {prompt}"
+    # Return structured content for the video player component
+    return {
+        "content": [
+            {
+                "type": "text",
+                "text": f"✅ Generated video: {prompt}"
             }
-        },
-        {
-            "type": "text",
-            "text": f"💾 Direct link: {video_url}\n⏰ Valid for 24 hours"
+        ],
+        "structuredContent": {
+            "video_url": video_url,
+            "prompt": prompt
         }
-    ]
+    }
 
 if __name__ == "__main__":
     # Run FastMCP server

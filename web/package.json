@@ -1,0 +1,19 @@
+{
+  "name": "paymcp-video-player",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/VideoPlayer.tsx --bundle --format=esm --outfile=dist/video-player.js --loader:.tsx=tsx --loader:.ts=ts"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0"
+  }
+}
+

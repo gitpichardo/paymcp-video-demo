@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY server.py .
 COPY start.sh .
 COPY providers/ ./providers/
+COPY web/dist/ ./web/dist/
 
 # Make start script executable
 RUN chmod +x start.sh
