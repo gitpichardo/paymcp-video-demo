@@ -49,15 +49,6 @@ async def generate(prompt: str, ctx: Context):
     }
 
 if __name__ == "__main__":
-    import os
-    import uvicorn
-    
     # Always run in HTTP mode (streamable-http transport)
-    # For Railway deployment, we need to bind to 0.0.0.0
-    port = int(os.getenv("PORT", "8000"))
-    
-    # Get the FastMCP app for streamable-http
-    app = mcp.get_asgi_app(transport="streamable-http")
-    
-    # Run with uvicorn, explicitly binding to 0.0.0.0
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # HOST environment variable is set by start.sh to 0.0.0.0 for Railway
+    mcp.run(transport="streamable-http")
