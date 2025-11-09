@@ -50,14 +50,14 @@ async def generate(prompt: str, ctx: Context):
 
 if __name__ == "__main__":
     import os
+    import uvicorn
     
     # Always run in HTTP mode (streamable-http transport)
-    # The proxy will connect to this server and forward requests to Claude Desktop
-    # This keeps API keys secure on the server
+    # For Railway deployment, we need to bind to 0.0.0.0
+    port = int(os.getenv("PORT", "8000"))
     
-    # Configure for Railway deployment
-    # Railway needs the server to bind to 0.0.0.0 to be accessible
-    os.environ.setdefault("HOST", "0.0.0.0")
-    os.environ.setdefault("PORT", "8000")
+    # Get the FastMCP app for streamable-http
+    app = mcp.get_asgi_app(transport="streamable-http")
     
-    mcp.run(transport="streamable-http")
+    # Run with uvicorn, explicitly binding to 0.0.0.0
+    uvicorn.run(app, host="0.0.0.0", port=port)
