@@ -194,12 +194,12 @@ Use the "PayMCP Video Generator" connector's "generate" tool to create
 a video of a sunset over mountains. Do not use built-in image generation.
 ```
 
-### Payment Workflow (TWO_STEP Mode)
+### Payment Workflow (RESUBMIT Mode)
 
-1. **Request video generation** - Client calls the `generate` tool
-2. **Receive payment link** - You'll get a Walleot payment URL ($0.60)
+1. **Request video generation** - Client calls the `generate` tool with prompt
+2. **Receive 402 error** - Server returns payment link and payment_id ($0.60)
 3. **Complete payment** - Click the link and pay
-4. **Confirm payment** - Use the `confirm_generate_payment` tool with the payment_id
+4. **Retry with payment_id** - Client retries `generate` tool with the same prompt + payment_id
 5. **Video generation** - Luma AI generates your video (~1-3 minutes)
 6. **Receive URL** - Get a download link for your generated video (valid 24 hours)
 
@@ -218,13 +218,15 @@ The video URL is valid for 24 hours and can be downloaded directly.
 
 ## PayMCP Modes
 
-This demo uses `TWO_STEP` mode by default. You can change modes by setting `PAYMCP_MODE`:
+This demo uses `RESUBMIT` mode (recommended for production). You can change modes by setting `PAYMCP_MODE`:
 
-- `TWO_STEP` - Split into two tools: generate + confirm (default)
-- `RESUBMIT` - Same tool called twice with payment_id
+- `RESUBMIT` - Same tool called twice with payment_id (recommended - no state management)
+- `TWO_STEP` - Split into two tools: generate + confirm
 - `ELICITATION` - Inline payment prompt (requires client support)
 - `PROGRESS` - Shows progress while polling for payment
 - `DYNAMIC_TOOLS` - Dynamically shows/hides tools
+
+**Why RESUBMIT?** No server-side state between payment and confirmation = more reliable, no race conditions.
 
 See [PayMCP documentation](https://github.com/PayMCP/paymcp) for more details.
 
