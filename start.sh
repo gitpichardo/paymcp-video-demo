@@ -1,8 +1,6 @@
 #!/bin/bash
 # Railway startup script
+# Sets HOST=0.0.0.0 before Python starts
 
-# Just run the server normally
-# Railway's internal networking should handle the connection
-# even if the server binds to 127.0.0.1
-exec python3 server.py
+exec python3 run.py
 
