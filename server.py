@@ -37,16 +37,23 @@ PayMCP(
 @mcp.tool()
 @price(PRICE_USD, "USD")
 async def generate(prompt: str, ctx: Context):
-    """Generates a short video and returns a download URL."""
+    """Generates a short video and returns a download URL with embedded preview."""
     # Generate the video and get the URL from Luma
     video_url = await generate_video(prompt)
     
-    return {
-        "message": "Video generated successfully!",
-        "video_url": video_url,
-        "prompt": prompt,
-        "instructions": "Click the video_url to download or view your generated video"
-    }
+    # Return formatted markdown that ChatGPT can render with video embed
+    return f"""✅ **Video generated successfully!**
+
+**Prompt:** {prompt}
+
+**Watch your video:**
+
+{video_url}
+
+🎥 **Direct download:** [Click here to download]({video_url})
+
+💡 **Note:** Video link is valid for 24 hours from Luma AI.
+"""
 
 if __name__ == "__main__":
     # Run FastMCP server
