@@ -41,19 +41,29 @@ async def generate(prompt: str, ctx: Context):
     # Generate the video and get the URL from Luma
     video_url = await generate_video(prompt)
     
-    # Return formatted markdown that ChatGPT can render with video embed
-    return f"""✅ **Video generated successfully!**
-
-**Prompt:** {prompt}
-
-**Watch your video:**
-
-{video_url}
-
-🎥 **Direct download:** [Click here to download]({video_url})
-
-💡 **Note:** Video link is valid for 24 hours from Luma AI.
-"""
+    # Return MCP-formatted content with embedded video resource
+    # This allows ChatGPT to display the video inline
+    return {
+        "content": [
+            {
+                "type": "text",
+                "text": f"✅ **Video generated successfully!**\n\n**Prompt:** {prompt}\n\n**Watch your video below:**"
+            },
+            {
+                "type": "resource",
+                "resource": {
+                    "uri": video_url,
+                    "mimeType": "video/mp4",
+                    "name": f"video_{prompt[:30]}.mp4",
+                    "description": f"AI-generated video: {prompt}"
+                }
+            },
+            {
+                "type": "text",
+                "text": f"🎥 **Direct link:** {video_url}\n\n💡 **Note:** Video is valid for 24 hours."
+            }
+        ]
+    }
 
 if __name__ == "__main__":
     # Run FastMCP server
