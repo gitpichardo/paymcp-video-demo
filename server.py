@@ -48,11 +48,6 @@ async def generate(prompt: str, ctx: Context):
         "instructions": "Click the video_url to download or view your generated video"
     }
 
-# Create ASGI app for uvicorn (Railway deployment)
-# This allows uvicorn to run the app with explicit host binding
-app = mcp.http_app()
-
 if __name__ == "__main__":
     # Always run in HTTP mode (streamable-http transport)
-    # For Railway: use start.sh which runs uvicorn with host=0.0.0.0
     mcp.run(transport="streamable-http")

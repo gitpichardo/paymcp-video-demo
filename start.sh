@@ -1,10 +1,8 @@
 #!/bin/bash
 # Railway startup script
 
-# Use Railway's PORT or default to 8000
-PORT=${PORT:-8000}
-
-# Run uvicorn directly with the FastMCP app
-# This bypasses FastMCP's run() method and gives us control over host binding
-exec python3 -m uvicorn server:app --host 0.0.0.0 --port $PORT
+# Just run the server normally
+# Railway's internal networking should handle the connection
+# even if the server binds to 127.0.0.1
+exec python3 server.py
 
