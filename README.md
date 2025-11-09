@@ -1,6 +1,6 @@
 # PayMCP Video Generation Demo
 
-A demonstration of PayMCP integration with Luma AI for paid video generation, compatible with Claude Desktop and other MCP clients.
+A demonstration of PayMCP integration with Luma AI for paid video generation, compatible with **Claude Desktop**, **ChatGPT Developer Mode**, and other MCP clients.
 
 ## Features
 
@@ -9,12 +9,14 @@ A demonstration of PayMCP integration with Luma AI for paid video generation, co
 - 🔄 **TWO_STEP payment mode** - payment before execution
 - 🔗 **URL-based delivery** - returns video download links
 - 🌐 **HTTP-based MCP server** - secure hosted deployment
-- 🔌 **Local STDIO proxy** - Claude Desktop compatible
+- 🔌 **Multi-client support** - Works with Claude Desktop and ChatGPT
+- 🚀 **Railway deployment** - One-click deployment to production
 
 ## Architecture
 
-This demo uses a **proxy pattern** to maintain security while supporting Claude Desktop:
+This demo supports **two deployment patterns**:
 
+### For Claude Desktop (Local Proxy)
 ```
 Claude Desktop (STDIO)
     ↓
@@ -25,10 +27,20 @@ Hosted PayMCP Server (server.py) - Has API keys
 Payment & Video Generation
 ```
 
+### For ChatGPT / Other MCP Clients (Direct HTTP)
+```
+ChatGPT Developer Mode (HTTP)
+    ↓
+Hosted PayMCP Server (server.py) - Has API keys
+    ↓
+Payment & Video Generation
+```
+
 **Why this architecture?**
-- 🔒 API keys stay on the hosted server (secure)
-- 🖥️ Claude Desktop runs local proxy in STDIO mode (compatible)
-- 🌐 Proxy forwards requests to hosted server (flexible)
+- 🔒 **Security** - API keys stay on the hosted server only
+- 🖥️ **Claude Desktop** - Uses local proxy in STDIO mode
+- 💬 **ChatGPT** - Connects directly to HTTP server
+- 🌐 **Flexible** - Works with any MCP client
 
 ## Prerequisites
 
@@ -150,6 +162,37 @@ Simply ask Claude to generate a video:
 ```
 
 The proxy will forward your request to the hosted PayMCP server.
+
+### In ChatGPT Developer Mode
+
+**Prerequisites:** Deploy your server first (see [DEPLOYMENT.md](DEPLOYMENT.md))
+
+1. **Enable Developer Mode:**
+   - Settings → Connectors → Advanced → Enable "Developer mode"
+
+2. **Add your connector:**
+   - Settings → Connectors → Add connector
+   - **Name:** PayMCP Video Generator
+   - **URL:** `https://your-server.railway.app/mcp`
+   - **Protocol:** Streaming HTTP
+   - **Authentication:** None
+
+3. **Use in conversations:**
+   - Select "Developer mode" from the model picker (⊕ menu)
+   - Be explicit: "Use the PayMCP Video Generator connector to generate a video of a cat playing with yarn"
+   - Tip: Add "Do not use any other tools" to avoid confusion
+
+4. **Confirm payment:**
+   - ChatGPT will show the tool call with payment link
+   - Click to pay via Walleot
+   - Confirm the `confirm_generate_payment` tool call
+   - Wait for video generation (~1-3 minutes)
+
+**Example prompt:**
+```
+Use the "PayMCP Video Generator" connector's "generate" tool to create 
+a video of a sunset over mountains. Do not use built-in image generation.
+```
 
 ### Payment Workflow (TWO_STEP Mode)
 

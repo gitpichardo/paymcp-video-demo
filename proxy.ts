@@ -78,6 +78,17 @@ async function main() {
   log(`Starting proxy...`);
   log(`Connecting to: ${MCP_ENDPOINT}`);
 
+  // Handle uncaught errors
+  process.on('uncaughtException', (error) => {
+    log(`Uncaught exception: ${error}`);
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    log(`Unhandled rejection: ${reason}`);
+    process.exit(1);
+  });
+
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -85,29 +96,52 @@ async function main() {
   });
 
   rl.on("line", async (line) => {
+    let requestId: string | number | undefined = undefined;
+    
     try {
+      // Skip empty lines
+      if (!line || line.trim() === '') {
+        return;
+      }
+      
       // Parse incoming JSON-RPC request
       const request = JSON.parse(line);
-      log(`→ ${request.method || 'notification'} ${sessionId ? `(session: ${sessionId.substring(0, 8)}...)` : '(no session)'}`);
+      
+      // Extract ID - must be string or number (not null)
+      if (request.id !== undefined && request.id !== null) {
+        requestId = request.id;
+      }
+      
+      log(`→ ${request.method || 'notification'} (id: ${requestId ?? 'none'}) ${sessionId ? `(session: ${sessionId.substring(0, 8)}...)` : '(no session)'}`);
 
       // Forward to PayMCP server
       const response = await forwardMessage(request);
-      log(`← Response`);
+      log(`← Response (id: ${response.id ?? 'none'})`);
 
-      // Write response to stdout
-      console.log(JSON.stringify(response));
+      // Write response to stdout (only if it's valid)
+      if (response && typeof response === 'object') {
+        console.log(JSON.stringify(response));
+      } else {
+        log(`Warning: Invalid response from server: ${response}`);
+      }
     } catch (error) {
-      log(`Error: ${error}`);
-      // Send error response
-      const errorResponse = {
-        jsonrpc: "2.0",
-        id: null,
-        error: {
-          code: -32603,
-          message: String(error),
-        },
-      };
-      console.log(JSON.stringify(errorResponse));
+      log(`Error processing request: ${error}`);
+      
+      // Only send error response if this was a request (has an id)
+      // Notifications (no id) should not receive responses
+      if (requestId !== undefined) {
+        const errorResponse = {
+          jsonrpc: "2.0",
+          id: requestId,
+          error: {
+            code: -32603,
+            message: error instanceof Error ? error.message : String(error),
+          },
+        };
+        console.log(JSON.stringify(errorResponse));
+      } else {
+        log("Notification failed - no error response sent");
+      }
     }
   });
 
