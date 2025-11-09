@@ -57,6 +57,5 @@ if __name__ == "__main__":
     
     # Get port from environment (Railway, Fly.io, etc.) or default to 8000
     port = int(os.getenv("PORT", "8000"))
-    host = os.getenv("HOST", "0.0.0.0")
     
-    mcp.run(transport="streamable-http", host=host, port=port)
+    mcp.run(transport="streamable-http", port=port)
