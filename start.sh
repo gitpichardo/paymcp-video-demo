@@ -1,10 +1,9 @@
 #!/bin/bash
 # Railway startup script
-# Sets HOST=0.0.0.0 before Python starts
+# Run uvicorn directly with explicit host binding
 
-export UVICORN_HOST=0.0.0.0
-export UVICORN_PORT=${PORT:-8000}
-export HOST=0.0.0.0
+PORT=${PORT:-8000}
 
-exec python3 run.py
+# Run uvicorn pointing to the asgi_app in server.py
+exec python3 -m uvicorn server:asgi_app --host 0.0.0.0 --port $PORT
 
