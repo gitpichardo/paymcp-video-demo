@@ -1,12 +1,10 @@
 #!/bin/bash
-# Railway startup script that sets HOST before starting Python
-
-# Export HOST to make uvicorn bind to all interfaces
-export HOST=0.0.0.0
+# Railway startup script
 
 # Use Railway's PORT or default to 8000
-export PORT=${PORT:-8000}
+PORT=${PORT:-8000}
 
-# Start the server
-exec python3 server.py
+# Run uvicorn directly with the FastMCP app
+# This bypasses FastMCP's run() method and gives us control over host binding
+exec python3 -m uvicorn server:app --host 0.0.0.0 --port $PORT
 
