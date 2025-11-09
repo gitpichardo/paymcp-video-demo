@@ -1,0 +1,14 @@
+node_modules/
+package.json
+package-lock.json
+proxy.ts
+proxy.js
+tsconfig.json
+proxy-wrapper.sh
+*.md
+.git/
+.gitignore
+venv/
+__pycache__/
+*.pyc
+
